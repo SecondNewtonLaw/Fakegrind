@@ -112,10 +112,10 @@ add_library(Fakegrind.Module SHARED
 
 if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     # gnu flags.
-    set(CXX_COMPILE_OPTIONS -Wall -Werror -Wmicrosoft)
+    set(CXX_COMPILE_OPTIONS -Wall -Wextra -Werror -Wmicrosoft -pedantic)
 elseif (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     # msvc flags.
-    set(CXX_COMPILE_OPTIONS /WX /Wall)
+    set(CXX_COMPILE_OPTIONS /WX /Wall /permissive-)
 endif ()
 
 target_compile_options(Fakegrind.Common PRIVATE ${CXX_COMPILE_OPTIONS})
