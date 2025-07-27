@@ -3,19 +3,16 @@
 //
 
 #pragma once
-#include "MemoryTrackerService.hpp"
 #include "Service.hpp"
 
 namespace Fakegrind::Services {
+struct AllocationInformation;
 class CommunicationService final : public Service {
   public:
     void Initialize() override {}
 
     void Uninitialize() override {}
 
-    void NotifyDoubleFree(const AllocationInformation &mem) {
-
-        MessageBoxA(nullptr, "Fakegrind", "Double Free Condition!", MB_OK);
-    }
+    void NotifyDoubleFree(const AllocationInformation &mem);
 };
 } // namespace Fakegrind::Services

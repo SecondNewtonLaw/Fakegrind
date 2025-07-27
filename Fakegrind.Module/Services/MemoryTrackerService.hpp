@@ -37,9 +37,9 @@ class MemoryTrackerService final : public Service {
 
     mutable std::mutex m_memoryLock;
 
-    std::mutex *GetMemoryLock() { return &this->m_memoryLock; }
+    std::mutex *GetMemoryLock() const { return &this->m_memoryLock; }
 
-    static void *hkmalloc(size_t size) {
+    static void *hkmalloc(const size_t size) {
         const auto &lpHookService = ServiceManager::GetSingleton().GetService<IATHookService>();
         const auto &lpMemoryTrackerService = ServiceManager::GetSingleton().GetService<MemoryTrackerService>();
         const auto &lpThreadManagerService = ServiceManager::GetSingleton().GetService<ThreadManagerService>();
@@ -48,7 +48,7 @@ class MemoryTrackerService final : public Service {
         auto lpAllocationData = std::make_unique<AllocationInfo>();
         lpAllocationData->AllocatedBy = lpThreadManagerService->GetCurrentThreadInformation();
         lpAllocationData->allocationSize = size;
-        lpAllocationData->stackTrace = std::move(cpptrace::generate_trace(0));
+        lpAllocationData->stackTrace = cpptrace::generate_trace(0);
 
         {
             std::lock_guard lg(*lpMemoryTrackerService->GetMemoryLock());
@@ -71,7 +71,7 @@ class MemoryTrackerService final : public Service {
         }
 
         lpHookService->GetOriginalByFunctionPointer<decltype(free)>(hkfree)(memory);
-        mem.FreeData = std::make_unique<FreeInfo>(std::move(cpptrace::generate_trace(0)), lpThreadManagerService->GetCurrentThreadInformation());
+        mem.FreeData = std::make_unique<FreeInfo>((cpptrace::generate_trace(0)), lpThreadManagerService->GetCurrentThreadInformation());
     }
 
   public:
