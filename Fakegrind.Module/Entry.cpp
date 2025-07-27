@@ -8,8 +8,12 @@
 #include "Services/LoggerService.hpp"
 #include "Services/MemoryTrackerService.hpp"
 #include "Services/ThreadManagerService.hpp"
+#include "../Fakegrind.Common/pch.hpp"
+
 
 BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwCallReason, LPVOID lpvReserved) {
+    UNUSED_ARGUMENT(hModule);
+    UNUSED_ARGUMENT(lpvReserved);
     auto &lpManager = Fakegrind::ServiceManager::GetSingleton();
 
     switch (dwCallReason) {

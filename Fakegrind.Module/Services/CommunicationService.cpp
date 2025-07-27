@@ -4,6 +4,6 @@
 
 #include "CommunicationService.hpp"
 void Fakegrind::Services::CommunicationService::NotifyDoubleFree(const AllocationInformation &mem) {
-
+    UNUSED_ARGUMENT(mem);
     MessageBoxA(nullptr, "Fakegrind", "Double Free Condition!", MB_OK);
 }

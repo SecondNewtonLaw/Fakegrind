@@ -65,6 +65,8 @@
 #define __PRETTY_FUNCTION__ __FUNCTION__
 #endif
 
+#define UNUSED_ARGUMENT(x) ((void)(x))
+
 #if defined(_WIN32)
 #ifndef NOMINMAX
 #define NOMINMAX
