@@ -44,14 +44,16 @@ class MemoryTrackerService final : public Service {
         const auto &lpMemoryTrackerService = ServiceManager::GetSingleton().GetService<MemoryTrackerService>();
         const auto &lpThreadManagerService = ServiceManager::GetSingleton().GetService<ThreadManagerService>();
 
-        std::lock_guard lg(*lpMemoryTrackerService->GetMemoryLock());
-
         const auto lpMem = lpHookService->GetOriginalByFunctionPointer<decltype(malloc)>(hkmalloc)(size);
         auto lpAllocationData = std::make_unique<AllocationInfo>();
         lpAllocationData->AllocatedBy = lpThreadManagerService->GetCurrentThreadInformation();
         lpAllocationData->allocationSize = size;
         lpAllocationData->stackTrace = std::move(cpptrace::generate_trace(0));
-        lpMemoryTrackerService->m_allocations[lpMem] = AllocationInformation{nullptr, std::move(lpAllocationData)};
+
+        {
+            std::lock_guard lg(*lpMemoryTrackerService->GetMemoryLock());
+            lpMemoryTrackerService->m_allocations[lpMem] = AllocationInformation{nullptr, std::move(lpAllocationData)};
+        }
 
         return lpMem;
     }
