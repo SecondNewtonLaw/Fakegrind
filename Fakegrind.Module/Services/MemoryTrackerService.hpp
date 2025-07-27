@@ -35,10 +35,16 @@ struct AllocationInformation {
 class MemoryTrackerService final : public Service {
     std::map<void *, AllocationInformation> m_allocations;
 
+    mutable std::mutex m_memoryLock;
+
+    std::mutex *GetMemoryLock() { return &this->m_memoryLock; }
+
     static void *hkmalloc(size_t size) {
         const auto &lpHookService = ServiceManager::GetSingleton().GetService<IATHookService>();
         const auto &lpMemoryTrackerService = ServiceManager::GetSingleton().GetService<MemoryTrackerService>();
         const auto &lpThreadManagerService = ServiceManager::GetSingleton().GetService<ThreadManagerService>();
+
+        std::lock_guard lg(*lpMemoryTrackerService->GetMemoryLock());
 
         const auto lpMem = lpHookService->GetOriginalByFunctionPointer<decltype(malloc)>(hkmalloc)(size);
         auto lpAllocationData = std::make_unique<AllocationInfo>();
@@ -55,11 +61,11 @@ class MemoryTrackerService final : public Service {
         const auto &lpMemoryTrackerService = ServiceManager::GetSingleton().GetService<MemoryTrackerService>();
         const auto &lpThreadManagerService = ServiceManager::GetSingleton().GetService<ThreadManagerService>();
 
-        auto &mem = lpMemoryTrackerService->m_allocations[memory];
+        std::lock_guard lg(*lpMemoryTrackerService->GetMemoryLock());
+        auto &mem = lpMemoryTrackerService->m_allocations.at(memory);
 
         if (mem.FreeData != nullptr) {
             ServiceManager::GetSingleton().GetService<CommunicationService>()->NotifyDoubleFree(mem);
-
         }
 
         lpHookService->GetOriginalByFunctionPointer<decltype(free)>(hkfree)(memory);
