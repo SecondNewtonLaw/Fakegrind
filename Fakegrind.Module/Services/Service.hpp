@@ -5,13 +5,13 @@
 #pragma once
 
 namespace Fakegrind {
-    class Service {
+class Service {
 
-    public:
-        virtual ~Service() = default;
+  public:
+    virtual ~Service() = default;
 
-        virtual void Initialize() = 0;
+    virtual void Initialize() = 0;
 
-        virtual void Uninitialize() = 0;
-    };
+    virtual void Uninitialize() = 0;
+};
 } // namespace Fakegrind

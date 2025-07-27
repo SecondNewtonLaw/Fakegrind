@@ -5,7 +5,10 @@
 #include "ServiceManager.hpp"
 #include "Services/LoggerService.hpp"
 
-Fakegrind::ServiceManager::~ServiceManager() {
+void Fakegrind::ServiceManager::Uninitialize() {
+    if (!this->m_serviceMap.empty())
+        return;
+
     auto lpLoggerService = this->GetService<Services::LoggerService>();
 
     lpLoggerService->LogInfo("Goodbye!");
@@ -22,6 +25,8 @@ Fakegrind::ServiceManager::~ServiceManager() {
 
     this->m_serviceMap.clear();
 }
+
+Fakegrind::ServiceManager::~ServiceManager() { this->Uninitialize(); }
 
 Fakegrind::ServiceManager &Fakegrind::ServiceManager::GetSingleton() {
     static ServiceManager instance;

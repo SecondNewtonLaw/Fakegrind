@@ -2,37 +2,44 @@
 // Created by Dottik on 26/7/2025.
 //
 
+#include <MinHook.h>
 #include <Windows.h>
-
 #include "ServiceManager.hpp"
 #include "Services/LoggerService.hpp"
+#include "Services/MemoryTrackerService.hpp"
 #include "Services/ThreadManagerService.hpp"
 
 BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwCallReason, LPVOID lpvReserved) {
     auto &lpManager = Fakegrind::ServiceManager::GetSingleton();
 
     switch (dwCallReason) {
-        case DLL_PROCESS_ATTACH: {
-            lpManager.AddService<Fakegrind::Services::LoggerService>();
-            lpManager.AddService<Fakegrind::Services::ThreadManagerService>();
+    case DLL_PROCESS_ATTACH: {
+        MH_Initialize();
+        lpManager.AddService<Fakegrind::Services::LoggerService>();
+        lpManager.AddService<Fakegrind::Services::MemoryTrackerService>();
+        lpManager.AddService<Fakegrind::Services::ThreadManagerService>();
+        break;
+    }
 
-            break;
-        }
+    case DLL_THREAD_ATTACH: {
+        auto lpThreadManagerService = lpManager.GetService<Fakegrind::Services::ThreadManagerService>();
+        lpThreadManagerService->AddCurrentThread();
+        break;
+    }
 
-        case DLL_THREAD_ATTACH: {
-            auto lpThreadManagerService = lpManager.GetService<Fakegrind::Services::ThreadManagerService>();
-            lpThreadManagerService->AddThread(GetCurrentThread());
-            break;
-        }
+    case DLL_THREAD_DETACH: {
+        auto lpThreadManagerService = lpManager.GetService<Fakegrind::Services::ThreadManagerService>();
+        lpThreadManagerService->RemoveThread(GetCurrentThread(), true);
+        break;
+    }
 
-        case DLL_THREAD_DETACH: {
-            auto lpThreadManagerService = lpManager.GetService<Fakegrind::Services::ThreadManagerService>();
-            lpThreadManagerService->RemoveThread(GetCurrentThread(), true);
-            break;
-        }
+    case DLL_PROCESS_DETACH: {
+        lpManager.GetSingleton().Uninitialize();
+        break;
+    }
 
-        case DLL_PROCESS_DETACH: break;
-        default: return FALSE;
+    default:
+        return FALSE;
     }
 
     return TRUE;

@@ -2,19 +2,33 @@
 // Created by Dottik on 26/7/2025.
 //
 
-
 #pragma once
+#include "../../Fakegrind.Common/Event.hpp"
 #include "Service.hpp"
 
 namespace Fakegrind::Services {
-    class ThreadManagerService final : public Service {
-        std::vector<HANDLE> m_threads;
-    public:
 
-        void Initialize() override;
-        void Uninitialize() override;
+struct ThreadInformation {
+    HANDLE hThread;
+    DWORD dwTid;
+    DWORD dwAssignedId;
+};
 
-        void RemoveThread(HANDLE hThread, bool bIsThreadExit = false);
-        void AddThread(HANDLE hThread);
-    };
+class ThreadManagerService final : public Service {
+    std::vector<ThreadInformation> m_threads;
+    std::int32_t m_currentId = 0;
+
+  public:
+    Fakegrind::ListenableEvent<ThreadInformation> OnThreadCreated;
+    Fakegrind::ListenableEvent<ThreadInformation> OnThreadDestroyed;
+
+    void Initialize() override;
+    void Uninitialize() override;
+
+    void RemoveThread(HANDLE hThread, bool bIsThreadExit = false);
+    void AddThread(const ThreadInformation &thread);
+    void AddCurrentThread();
+    Fakegrind::Services::ThreadInformation GetThread(HANDLE hThread) const;
+    ThreadInformation GetCurrentThreadInformation() const;
+};
 } // namespace Fakegrind::Services

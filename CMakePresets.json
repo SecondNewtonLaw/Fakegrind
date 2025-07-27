@@ -1,0 +1,41 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "Debug",
+      "displayName": "Debug",
+      "description": "Debug build configuration",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/artifacts/Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/Debug",
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/bin/Debug",
+        "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/bin/Debug"
+      }
+    },
+    {
+      "name": "Release",
+      "displayName": "Release",
+      "description": "Release build configuration",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/artifacts/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/Release",
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/bin/Release",
+        "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/bin/Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "Debug",
+      "configurePreset": "Debug"
+    },
+    {
+      "name": "Release",
+      "configurePreset": "Release"
+    }
+  ]
+}
