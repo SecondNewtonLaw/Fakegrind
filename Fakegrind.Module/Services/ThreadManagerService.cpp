@@ -10,7 +10,7 @@
 #include "LoggerService.hpp"
 void Fakegrind::Services::ThreadManagerService::Initialize() {
     const auto &lpLogger = ServiceManager::GetSingleton().GetService<LoggerService>();
-    auto hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, GetCurrentProcessId());
+    auto hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 
     if (hSnapshot == INVALID_HANDLE_VALUE) {
         lpLogger->LogError(
@@ -29,7 +29,10 @@ void Fakegrind::Services::ThreadManagerService::Initialize() {
         return;
     }
 
+    auto dwCurrentPid = GetCurrentProcessId();
     do {
+        if (the.th32OwnerProcessID != dwCurrentPid)
+            continue;
         auto hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, the.th32ThreadID);
 
         if (hThread == INVALID_HANDLE_VALUE) {
@@ -43,10 +46,14 @@ void Fakegrind::Services::ThreadManagerService::Initialize() {
     CloseHandle(hSnapshot);
 }
 
-void Fakegrind::Services::ThreadManagerService::Uninitialize() { this->m_threads.clear(); }
+void Fakegrind::Services::ThreadManagerService::Uninitialize() {
+    std::lock_guard sl(this->m_mutex);
+    this->m_threads.clear();
+}
 
 void Fakegrind::Services::ThreadManagerService::RemoveThread(const HANDLE hThread, bool bIsThreadExit) {
     const auto &lpLogger = ServiceManager::GetSingleton().GetService<LoggerService>();
+    std::lock_guard sl(this->m_mutex);
     for (auto it = this->m_threads.begin(); it != this->m_threads.end(); ++it) {
         if (it->hThread == hThread) {
             auto additionalText = "Removed by Tracking";
@@ -65,7 +72,8 @@ void Fakegrind::Services::ThreadManagerService::RemoveThread(const HANDLE hThrea
 
 void Fakegrind::Services::ThreadManagerService::AddThread(const ThreadInformation &thread) {
     const auto &lpLogger = ServiceManager::GetSingleton().GetService<LoggerService>();
-    lpLogger->LogInfo("Tracking Thread with ID {}", thread.dwTid);
+    lpLogger->LogInfo("Tracking Thread with ID {} (Identified as T{} with hThread {})", thread.dwTid, thread.dwAssignedId, thread.hThread);
+    std::lock_guard sl(this->m_mutex);
     this->m_threads.emplace_back(thread);
     auto thCopy = thread;
     this->OnThreadCreated.Fire(std::move(thCopy));
@@ -82,12 +90,19 @@ void Fakegrind::Services::ThreadManagerService::AddCurrentThread() {
 }
 
 Fakegrind::Services::ThreadInformation Fakegrind::Services::ThreadManagerService::GetThread(HANDLE hThread) const {
+    auto dwTid = GetThreadId(hThread);
+    if (dwTid == 0)
+        return Fakegrind::Services::ThreadInformation{INVALID_HANDLE_VALUE, 0, 0};
+
+    std::lock_guard sl(this->m_mutex);
     for (const auto &thread : m_threads) {
-        if (thread.hThread == hThread)
+        if (thread.dwTid == dwTid)
             return thread;
     }
 
-    UNREACHABLE("Impossible, how did this occur?"); // all threads are tracked, this is guaranteed.
+    // UNREACHABLE("Impossible, how did this occur?"); // all threads are tracked, this is guaranteed.
+
+    return Fakegrind::Services::ThreadInformation{INVALID_HANDLE_VALUE, 0, 0};
 }
 
 Fakegrind::Services::ThreadInformation Fakegrind::Services::ThreadManagerService::GetCurrentThreadInformation() const {

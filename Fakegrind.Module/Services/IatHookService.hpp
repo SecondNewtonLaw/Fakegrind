@@ -3,15 +3,14 @@
 //
 
 #pragma once
-#include "../../Fakegrind.Common/pch.hpp"
 #include "../ServiceManager.hpp"
 #include "LoggerService.hpp"
 #include "Service.hpp"
 
-namespace Fakegrind {
+namespace Fakegrind::Services {
 class IATHookService final : public Service {
-    std::map<void *, void *> m_iatAddressToOriginal; // used to reset on uninitialize.
-    std::map<void *, void *> m_hookToOriginal;       // only for ease of usage.
+    std::unordered_map<void *, void *> m_iatAddressToOriginal; // used to reset on uninitialize.
+    std::unordered_map<void *, void *> m_hookToOriginal;       // only for ease of usage.
 
   public:
     IMAGE_IMPORT_DESCRIPTOR *GetImportTable(HMODULE hModule);
@@ -19,7 +18,7 @@ class IATHookService final : public Service {
     void Initialize() override;
 
     template <typename T> std::add_pointer_t<T> GetOriginalByFunctionPointer(T hook) {
-        DEBUG_ASSERT(this->m_hookToOriginal.contains(reinterpret_cast<void *>(hook)));
+        ASSERT(this->m_hookToOriginal.contains(reinterpret_cast<void *>(hook)));
         return reinterpret_cast<std::add_pointer_t<T>>(reinterpret_cast<uintptr_t>(this->m_hookToOriginal.at(reinterpret_cast<void *>(hook))));
     }
 

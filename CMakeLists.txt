@@ -106,25 +106,30 @@ add_library(Fakegrind.Module SHARED
         Fakegrind.Module/Services/IatHookService.hpp
         Fakegrind.Module/Services/CommunicationService.cpp
         Fakegrind.Module/Services/CommunicationService.hpp
+        Fakegrind.Module/Services/ConfigurationService.cpp
+        Fakegrind.Module/Services/ConfigurationService.hpp
 )
 
 #[==[ Compiler Settings ]==]
 
 if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     # gnu flags.
-    set(CXX_COMPILE_OPTIONS -Wall -Wextra -Werror -Wmicrosoft -pedantic)
+    set(CXX_COMPILE_OPTIONS -Wall -Wextra -Werror -Wmicrosoft -pedantic -g3 -static)
 elseif (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     # msvc flags.
     set(CXX_COMPILE_OPTIONS /WX /Wall /permissive-)
 endif ()
 
+target_link_options(Fakegrind.Module PUBLIC -g3 -static)
+target_link_options(Fakegrind.CLI PUBLIC -g3)
+
 target_compile_options(Fakegrind.Common PRIVATE ${CXX_COMPILE_OPTIONS})
 target_compile_options(Fakegrind.CLI PRIVATE ${CXX_COMPILE_OPTIONS})
 target_compile_options(Fakegrind.Module PRIVATE ${CXX_COMPILE_OPTIONS})
 
-target_precompile_headers(Fakegrind.Common PUBLIC Fakegrind.Common/pch.hpp)
-target_precompile_headers(Fakegrind.Module PUBLIC Fakegrind.Common/pch.hpp)
-target_precompile_headers(Fakegrind.CLI PUBLIC Fakegrind.Common/pch.hpp)
+target_precompile_headers(Fakegrind.Common PRIVATE Fakegrind.Common/pch.hpp)
+target_precompile_headers(Fakegrind.Module PRIVATE Fakegrind.Common/pch.hpp)
+target_precompile_headers(Fakegrind.CLI PRIVATE Fakegrind.Common/pch.hpp)
 
 target_link_libraries(Fakegrind.Common PUBLIC
         libassert::assert

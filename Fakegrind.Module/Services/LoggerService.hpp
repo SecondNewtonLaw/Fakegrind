@@ -4,11 +4,15 @@
 
 #pragma once
 #include "Service.hpp"
+#include "ThreadManagerService.hpp"
+
+#include <complex>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 namespace Fakegrind::Services {
+struct AllocationInformation;
 class LoggerService final : public Service {
     std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> m_lpCoutSink = nullptr;
     std::shared_ptr<spdlog::sinks::basic_file_sink_mt> m_lpFileSink = nullptr;
@@ -56,5 +60,15 @@ class LoggerService final : public Service {
     template <typename... Args> void LogCritical(std::format_string<Args...> fmt, Args &&...args) const {
         this->LogCritical(std::format(fmt, std::forward<Args>(args)...));
     }
+
+    void LogPossibleLeak(const AllocationInformation *lpAllocationInformation) const;
+    void LogDoubleFree(
+        const AllocationInformation *lpAllocationInformation, const ThreadInformation *lpThreadInformation, const cpptrace::stacktrace *lpCurrentStackTrace
+    );
+    void LogLostAllocation(
+        const AllocationInformation *lpLostAllocation, const ThreadInformation *lpNewAllocThreadInfo, const cpptrace::stacktrace *lpNewAllocStackTrace,
+        size_t newAllocationSize
+    );
+    void Flush() const;
 };
 } // namespace Fakegrind::Services

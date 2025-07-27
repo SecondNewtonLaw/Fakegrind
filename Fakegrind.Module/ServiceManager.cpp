@@ -6,7 +6,7 @@
 #include "Services/LoggerService.hpp"
 
 void Fakegrind::ServiceManager::Uninitialize() {
-    if (!this->m_serviceMap.empty())
+    if (this->m_serviceMap.empty())
         return;
 
     auto lpLoggerService = this->GetService<Services::LoggerService>();

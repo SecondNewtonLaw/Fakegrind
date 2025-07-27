@@ -15,8 +15,9 @@ struct ThreadInformation {
 };
 
 class ThreadManagerService final : public Service {
+    mutable std::mutex m_mutex;
     std::vector<ThreadInformation> m_threads;
-    std::int32_t m_currentId = 0;
+    std::uint32_t m_currentId = 0;
 
   public:
     Fakegrind::ListenableEvent<ThreadInformation> OnThreadCreated;
@@ -28,7 +29,9 @@ class ThreadManagerService final : public Service {
     void RemoveThread(HANDLE hThread, bool bIsThreadExit = false);
     void AddThread(const ThreadInformation &thread);
     void AddCurrentThread();
-    Fakegrind::Services::ThreadInformation GetThread(HANDLE hThread) const;
-    ThreadInformation GetCurrentThreadInformation() const;
+
+    [[nodiscard]] ThreadInformation GetThread(HANDLE hThread) const;
+
+    [[nodiscard]] ThreadInformation GetCurrentThreadInformation() const;
 };
 } // namespace Fakegrind::Services
